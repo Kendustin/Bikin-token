@@ -1,5 +1,3 @@
-
-
 // PLN is modified fork of RFI on Binance Smart Chain
 
 // SPDX-License-Identifier: MIT
