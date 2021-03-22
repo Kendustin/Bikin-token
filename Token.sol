@@ -1,3 +1,704 @@
+<!--
+  The MIT License
+
+  Copyright (c) 2018, Etherscan.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <style type="text/css">
+
+        html {
+            font-size: 13px;
+        }
+
+        body {
+            font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+        }
+
+        a {
+            color: #3498db;
+        }
+
+            a:hover {
+                color: #1d6fa5;
+            }
+
+        .text-primary {
+            color: #3498db !important;
+        }
+
+        .btn-link:hover {
+            color: #1d6fa5;
+            text-decoration: none;
+        }
+
+        .card-btn-arrow {
+            display: inline-block;
+            color: #3498db;
+            margin-top: 5px;
+        }
+
+        #overlay {
+            /*background: #ffffff;*/
+            background: rgba(255,255,255,.7);
+            color: #666666;
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            z-index: 5000;
+            top: 0;
+            left: 0;
+            float: left;
+            text-align: center;
+            padding-top: 10%;
+            display: none;
+        }
+
+        .accordion-arrow {
+            display: inline-block;
+            transition: 0.3s ease-in-out;
+        }
+
+        .collapsed .accordion-arrow {
+            transform: rotate(-90deg);
+        }
+
+        body.dark-mode {
+            color: #a2b9c8;
+            background-color: #01263f !important;
+        }
+
+            body.dark-mode .bg-light {
+                background-color: #01263f !important
+            }
+
+            body.dark-mode .text-secondary {
+                color: #7295ac !important
+            }
+
+
+            body.dark-mode .border, body.dark-mode .border-bottom, body.dark-mode .border-top, body.dark-mode .u-ver-divider--left:after, body.dark-mode .u-ver-divider:after {
+                border-color: #013558 !important
+            }
+
+            body.dark-mode p {
+                color: #a2b9c8
+            }
+
+            body.dark-mode .modal-footer, body.dark-mode .modal-header {
+                border-color: #013558
+            }
+
+            body.dark-mode .card {
+                border-color: transparent !important;
+                background-color: #012137 !important;
+                box-shadow: 0 .5rem 1.2rem rgba(4,76,124,.2)
+            }
+
+            body.dark-mode .card-header {
+                background-color: #012137 !important;
+                border-color: #013558
+            }
+
+            body.dark-mode .card-header-title {
+                color: #a2b9c8
+            }
+
+            body.dark-mode .card-btn {
+                color: #a2b9c8
+            }
+
+            body.dark-mode .form-control::-webkit-input-placeholder {
+                color: #577c93
+            }
+
+            body.dark-mode .form-control::-moz-placeholder {
+                color: #577c93
+            }
+
+            body.dark-mode .form-control::-ms-input-placeholder {
+                color: #577c93
+            }
+
+            body.dark-mode .form-control::placeholder {
+                color: #577c93
+            }
+
+            body.dark-mode .link-hover-secondary, body.dark-mode .text-dark, body.dark-mode .text-link, body.dark-mode .text-muted, body.dark-mode .text-white {
+                color: #a2b9c8 !important
+            }
+
+            body.dark-mode .custom-select, body.dark-mode .form-control, body.dark-mode .input-group-text {
+                color: #a2b9c8 !important;
+                border-color: #013558 !important;
+                background-color: #01263f !important
+            }
+
+            body.dark-mode .btn-primary, body.dark-mode .btn-primary:not([href]), body.dark-mode .btn-primary:not([href]):not([href]):not(:disabled):not(.disabled) {
+                color: rgba(255, 255, 255, 0.8);
+                background-color: rgba(52, 152, 219, 0.2);
+                border-color: rgba(52, 152, 219, 0.2);
+            }
+
+                body.dark-mode .btn-primary:focus, body.dark-mode .btn-primary:hover, body.dark-mode .btn-primary:not([href]):focus, body.dark-mode .btn-primary:not([href]):hover, body.dark-mode .btn-primary:not([href]):not([href]):not(:disabled):not(.disabled):focus, body.dark-mode .btn-primary:not([href]):not([href]):not(:disabled):not(.disabled):hover {
+                    color: white;
+                    background-color: #3498db;
+                }
+
+        .badge-red {
+            background: #e74c3c;
+        }
+
+        .badge-green {
+            background: rgb(0,128,0);
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay" class="py-3 text-center">
+        <img src="/images/main/loadingblock.svg" alt="Loading" />
+    </div>
+    <div id="header">
+    </div>
+    <div class="panel-group acc-v1" id="accordion" role="tablist" aria-multiselectable="true">
+    </div>
+    <div id="footer" class="mr-3" style="display:none">
+        <p align='right'>Powered by <a href='https://etherscan.io' target='_parent'>Etherscan.io</a>. Browse <a href='https://github.com/etherscan/writecontract' target='_blank'>source code</a></p>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-migrate-1.4.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.0/dist/web3.min.js"></script>
+<!-- for some reason version > 1.2.2 breaks with "require is not defined" (v1.2.1 breaks per issue https://github.com/ethereum/web3.js/issues/3074) -->
+<!-- to confirm with web3js -->
+
+<script>
+    var mode = getParameterByName("m");
+    jQuery(window).load(function () {
+        jQuery('#overlayMain').fadeOut();
+        window.parent.document.getElementById('loadingWriteContractframe').style.display = "none";
+        window.parent.document.getElementById('overlayMain').style.display = 'none';
+
+        if (mode === "dark") {
+            var src = $('body');
+            src.addClass('dark-mode');
+        }
+    });
+
+    var header = $('#header');
+    var body = $('#accordion');
+    var net = getUrlParameter('n');
+    var address;
+    var ABI = '';
+    var web3;
+    var contractAddress = getUrlParameter('a');
+    var myContract;
+    var myContractInstance;
+    var hasInput = false;
+    var api = '';
+    var isAccount = false;
+
+    if (net == 'tobalaba')
+        net = 'ecw';
+
+    if ((contractAddress !== undefined) || (net !== undefined)) {
+
+        if (typeof ethereum !== 'undefined') {
+            web3 = new Web3(ethereum);
+        } else if (typeof web3 !== 'undefined') {
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('https://' + net + '.infura.io/v3/80f1c00345214da4bdbc4d02f35fb265'));
+        }
+
+
+
+        if (net === 'mainnet')
+            api = '//api.etherscan.io';
+        else if (net == 'ecw')
+            api = '//api-ewc.etherscan.com';
+        else
+            api = '//api-' + net + '.etherscan.io';
+        appendABI(contractAddress, body, 5, false);
+
+    }
+
+    function appendABI(contractAddress, body, maxDepth, isProxy) {
+        $.getJSON(api + '/api?module=contract&action=getabi&address=' + contractAddress, function (data) {
+            if (data.status == '0') {
+                header.append("<br><i Class='fa fa-frown-o'></i>  Sorry, we were unable to locate a matching Contract ABI or SourceCode for this contract.<br><br>If you are the contract owner, please <a href='https://etherscan.io/verifyContract?a=" + contractAddress + "' target='_parent'>Verify Your Contract Source Code</a> here.");
+
+            } else {
+
+                var result = ABI = JSON.parse(data.result);
+                var counter = 0;
+                var maxCounter = 0;
+
+                $.each(result, function (index, value) {
+                    if (value.constant !== false) {
+                        if (value.name !== undefined) {
+                            if (maxDepth > 0 && value.name.toString() === "implementation" && value.inputs.length === 0) {
+                                web3.eth.call({
+                                    to: contractAddress,
+                                    data: "0x5c60da1b"
+                                }, function (error, implementationAddress) {
+                                    if (error) {
+                                        console.error(error);
+                                        return;
+                                    }
+                                    implementationAddress = web3.utils.toChecksumAddress("0x" + implementationAddress.slice(26));
+
+                                    if (implementationAddress !== "0x") {
+                                        let implementationSection = NewProxySection(body, implementationAddress);
+                                        appendABI(implementationAddress, implementationSection, maxDepth - 1, true);
+                                    }
+                                });
+                            }
+                        }
+
+                        return;
+                    }
+                    var value_name = value.name.toString();
+
+                    if (value_name === "") {
+                        return;
+                    }
+                    counter += 1;
+
+                    var isPayable = value.payable;
+                    var counterInput = 0;
+                    var maxItemsInput = value.inputs.length;
+                    var inputExtr_WithName = '';
+
+                    if (isPayable) {
+                        inputExtr_WithName += ' <div class="form-group"><label>' + value_name + ' </label>' +
+                            '<input type="text" class="form-control form-control-xs" id="input_payable_' + value_name + '" name="payable_' + value_name + '" placeholder="&nbsp; payableAmount (ether)"></div>';
+                    }
+
+
+                    var inputId = "input_" + counter;
+                    if (isProxy)
+                        inputId += "_proxy_" + maxDepth;
+
+
+                    if (value.inputs.length > 0) {
+                        $.each(value.inputs, function (i, v) {
+                            counterInput += 1;
+                            var inputTag = '';
+                            var inputName = v.name.toString();
+
+                            if (v.type.indexOf('][') !== -1) {
+                                var regex = /\[([0-9,-]+)\]/;
+                                var dynamicArray = v.type.toString().match(regex)[1];
+                                var d;
+                                inputTag = ' <div class="form-group"><label>' + inputName + ' (' + v.type.toString() + ') </label>';
+                                for (d = 0; d < dynamicArray; d++) {
+
+
+                                  
+                                    var counterInputGroup = "g" + counterInput;
+
+                                    if (isProxy) {                                    
+                                        counterInputGroup += "_proxy_" + maxDepth;
+                                    }
+                                       
+                                    inputTag += '<input type="text" style="margin-bottom:5px" class="form-control form-control-xs" id="' + inputId + '" name="noname" data-grp="' + counterInputGroup + '" data-type="' + v.type.toString() + '" placeholder="&nbsp; ' + inputName + '[]">';
+                                   
+                                }
+
+                                inputTag += '</div>';
+
+
+                            } else {
+                               
+
+                                inputTag = GenerateInputTag(inputName, inputId, v.type.toString(), isProxy, maxDepth);
+                            }
+
+                            inputExtr_WithName += inputTag;
+                        });
+                    }
+
+
+                    inputExtr_WithName += "<button type='button' class='write-btn btn btn-xs btn-primary border' onclick=\"write0('" + value_name + "', '" + inputId + "');\">Write</button> <div style='display:inline' class='write-msg text-success " + inputId + "'></div>";
+
+
+                    GenerateRow(value_name, inputExtr_WithName, counter, body);
+
+                });
+
+                $('#footer').show();
+            }
+            $('.write-btn').addClass('disabled');
+
+            var obj = window.parent.document.getElementById('writecontractiframe');
+            if (obj !== null)
+                parent.resizeIframe(obj, 0);
+        });
+    }
+
+    function GenerateInputTag(inputName, inputId, type) {
+        if (inputName !== "") {
+            return ' <div class="form-group"><label>' + inputName + ' (' + type + ') </label>' +
+                '<input type="text" class="form-control form-control-xs" id="' + inputId + '" name="noname" data-type="' + type + '" placeholder="&nbsp; ' + inputName + ' (' + type + ')"></div>';
+
+        } else {
+            return ' <div class="form-group"><label>' + type + '</label>' +
+                '<input type="text" class="form-control form-control-xs" id="' + inputId + '" name="noname" data-type="' + type + '" placeholder=" &nbsp; &lt;input&gt (' + type + ')"></div>';
+        }
+    }
+
+    function GenerateRow(fieldName, outputFieldsWithName, counter, body) {
+        if (!hasInput) {
+            hasInput = true;
+
+            header.append('<div class="alert bg-light border"><p class="mb-0"><i class="fas fa-magic text-primary mr-1"></i> <strong>Feature Tip:</strong> <a class="font-weight-bold" href="/dapp/' + contractAddress + '"  target="_parent">Etherscan Dapp Page</a> - A new front-end interface for any smart contract on Ethereum!</p></div>')
+            header.append('<div class="d-sm-flex justify-content-between mb-3"><p class="ml-3 mr-3 mb-1"><i id="connector" class="fa fa-circle text-danger mr-1"></i> Write Contract <a id="connectWeb3" style="font-size: 12px!important" href="#" onclick="connectWeb3(); return false;">Connect to Web3</a ></p><a class="ml-3 mr-3" href="?m=' + mode + '&a=' + contractAddress + '&n=' + net + '">[Reset]</a></div >');
+
+        }
+        var output = '<div class="card shadow-none mb-3"><div class="card-header bg-light card-collapse p-0" role="tab" id="heading' + counter + '">' +
+            '<a role="button" class="btn btn-link btn-block text-dark d-flex justify-content-between align-items-center py-2"  data-toggle="collapse" data-parent="#accordion" href="#collapse' + counter + '" aria-expanded="true" aria-controls="collapse' + counter + '">' + counter + '. ' + fieldName + '<span class="accordion-arrow"><i class="fas fa-arrow-down small"></i></span></a></div>' +
+            '<div id="collapse' + counter + '" class="collapse show" role="tabpanel" aria-labelledby="heading' + counter + '"><div class="card-body"><form>' + outputFieldsWithName + '</form></div></div></div>';
+
+        body.before(output);
+    }
+
+    function NewProxySection(body, address) {
+        let section = '<p>Showing ABI for possible implementation <a href="/address/' + address + '#writeContract" target="_blank" >' + address + '</a></p><div class="panel-group acc-v1" id="impl' + address + '" role="tablist" aria-multiselectable="true"></div>';
+        $("#footer").before(section);
+        return $('#impl' + address);
+    }
+
+    function write0(method, input) {
+
+        if (isAccount === false) {
+            alert("Please connect to your Web3 provider!");
+
+            return;
+        }
+
+
+        var functiontoCall = 'myContractInstance.methods.' + method;
+        var params = [];
+        var ctrl = document.querySelectorAll("[id=" + input + "]");
+        var inputs = [];
+
+        for (var i = 0; i < ctrl.length; i++) {
+            var type = ctrl[i].getAttribute('data-type');
+            var grp = ctrl[i].getAttribute('data-grp');
+            var values = [];
+
+            if (ctrl[i].value == '' && grp === null) {
+                document.getElementById(input).focus();
+                alert('Input value cannot be empty');
+                return false;
+            }
+
+            var value = strip(ctrl[i].value);
+            if (value) {
+                if (type.indexOf('[') !== -1 && type.indexOf(']') !== -1) values.push(value.split(','));
+                else values.push(value);
+            } else values.push('');
+
+            inputs.push({ type: type, value: values, grp: grp });
+        }
+
+        var params = encodeParams(inputs);
+        var payableAmountInput = document.getElementById("input_payable_" + method);
+        var payableParam = payableAmountInput && !isNaN(payableAmountInput.value) ? ', { value: web3.toWei(' + Escape(payableAmountInput.value) + ', "ether") }' : '';
+
+        try {
+            new Function(functiontoCall + "(" + params + payableParam + ").send({ from:'" + web3.eth.defaultAccount + "'})" +
+                ".on('transactionHash', function(hash) { showTx('', hash, '" + input + "'); })" +
+                ".on('error', function(error) { showTx(error, '', '" + input + "') });")();
+        } catch (err) {
+            showTx(err.message, '', input);
+        }
+
+    }
+
+    function encodeParams(values) {
+        var params = '';
+
+        if (values.length === 0)
+            return undefined;
+
+        for (i = 0; i < values.length; i++) {
+            var param = values[i];
+
+            if (param.value !== '') {
+                if (param.grp !== null) {
+                    var _grp = values.filter(function (x) { return x.grp == param.grp });
+                    var _grpParam = '';
+
+                    for (g = 0; g < _grp.length; g++) {
+                        param = _grp[g];
+
+                        if (param.value[0] !== '') {
+                            if (g == 0)
+                                _grpParam = '[' + toHex(param.type, Escape(param.value[0]));
+                            else
+                                _grpParam = _grpParam + ',' + toHex(param.type, Escape(param.value[0]));
+                        }
+                    }
+                    _grpParam += ']';
+
+                    if (i == 0)
+                        params += _grpParam;
+                    else
+                        params += ',' + _grpParam;
+
+                    i += _grp.length - 1;
+                }
+                else {
+                    if (i == 0)
+                        params = toHex(param.type, Escape(param.value[0]));
+                    else
+                        params = params + ',' + toHex(param.type, Escape(param.value[0]));
+                }
+            }
+        }
+
+        return params;
+    }
+
+    function Escape(val) {
+
+        if (typeof val === 'string' || val instanceof String)
+            return val.replace(/'/g, "\\u0027");
+        else
+            return val;
+
+    }
+
+    function strip(val) {
+
+
+        val = val.replace(/"/g, '');
+        val = val.replace('[', '');
+        val = val.replace(']', '');
+
+
+        return val;
+    }
+
+    function toHex(type, val) {
+
+        if (Array.isArray(val)) {
+            var param = "[";
+
+            var i;
+            for (i = 0; i < val.length; i++) {
+                if (i == 0)
+                    param += toHex(type, val[i]);
+                else
+                    param = param + ',' + toHex(type, val[i]);
+            }
+            param += "]";
+
+            return param;
+
+        } else {
+            if (type.indexOf('bool') !== -1)
+                return JSON.parse(val);
+            else if (type.indexOf('address') !== -1)
+                return "'" + add0xforAddress(val) + "'"
+            else
+                return "'" + val + "'"
+        }
+
+    };
+
+    function showTx(err, msg, input) {
+
+        if (err) {
+            $('.' + input).html("<span class='text-danger'>" + err + "</span>");
+        } else {
+            var _url = 'etherscan.io';
+            if (net !== 'mainnet' && net == 'tobalaba')
+                _url = "ewc.etherscan.com";
+            else if (net !== 'mainnet')
+                _url = net + ".etherscan.io"
+
+
+            if (msg !== undefined)
+                $('.' + input).html("<a class='btn btn-primary' href='//" + _url + "/tx/" + msg + "' target='_blank'> View your transaction</a>");
+        }
+
+    }
+
+    async function connectWeb3() {
+        var network = 0;
+
+        network = await web3.eth.net.getId();
+        netID = network.toString();
+
+
+        switch (netID) {
+            case "1":
+                network = 'mainnet';
+                break;
+            case "2":
+                network = 'morden';
+                break;
+            case "3":
+                network = 'ropsten';
+                break;
+            case "4":
+                network = 'rinkeby';
+                break;
+            case "5":
+                network = 'goerli';
+                break;
+            case "42":
+                network = 'kovan';
+                break;
+            case "246":
+                network = 'ecw';
+                break;
+            default:
+                console.log('This is an unknown network.');
+        }
+
+        if (network.toLowerCase() !== net.toLowerCase()) {
+            alert("Please connect your Web3 to " + net + ' network');
+            return false;
+        } else {
+            if (typeof ethereum !== 'undefined') {
+                ethereum.enable().then(function () {
+                    getWeb3Accounts();
+                });
+            } else {
+                getWeb3Accounts();
+            }
+        }
+
+        setTimeout(function () {
+            window.parent.writeContractLoaded = true;
+            var obj = window.parent.document.getElementById('writecontractiframe');
+
+            if (obj !== null) {
+                parent.resizeIframe(obj, 0);
+                window.parent.isFrameLoading = false;
+                window.parent.document.getElementById('overlayMain').style.display = 'none';
+            }
+        }, 50);
+    }
+
+    function getWeb3Accounts() {
+        web3.eth.getAccounts(function (err, accounts) {
+            if (err) alert(err + '. Are you sure you are on a secure (SSL / HTTPS) connection?');
+
+            if (accounts.length > 0) {
+                address = accounts[0];
+                var isAddress = web3.utils.isAddress(address);
+
+                if (isAddress) {
+
+                    var msg = 'Please take note that this is a beta version feature and is provided on an "as is" and "as available" basis. Etherscan does not give any warranties and will not be liable for any loss, direct or indirect through continued use of this feature.';
+
+                    if (confirm(msg)) {
+                        $('.write-btn').show();
+                        $('#connectWeb3').hide();
+                        web3.eth.defaultAccount = accounts[0];
+
+                        myContractInstance = new web3.eth.Contract(ABI, contractAddress);
+
+                        $('#connector').removeClass("text-danger").addClass("text-success");
+                        $('#connector').attr('title', 'Connected');
+
+                        $('.write-btn').removeClass("disabled");
+                    }
+
+                    isAccount = true;
+                }
+            } else {
+                alert('Please connect to your Web3 provider!');
+            }
+        });
+    }
+
+    function add0xforAddress(_address) {
+        _address = _address.trim();
+        if (_address.startsWith("0x") == false && _address.length == 40) {
+            _address = "0x" + _address;
+        }
+        return _address;
+    }
+
+    function getUrlParameter(sParam) {
+        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : sParameterName[1];
+            }
+        }
+    }
+
+
+    setTimeout(function () {
+        window.parent.writeContractLoaded = true;
+        var obj = window.parent.document.getElementById('writecontractiframe');
+
+        if (obj !== null) {
+            parent.resizeIframe(obj, 0);
+            window.parent.isFrameLoading = false;
+            window.parent.document.getElementById('overlayMain').style.display = 'none';
+        }
+
+    }, 50);
+    function getParameterByName(name) {
+        var url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    $(document).ready(function () {
+        $(window).keydown(function (event) {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+                return false;
+            }
+        });
+    });
+</script>
+</html>
+
+
 // PLN is modified fork of RFI on Binance Smart Chain
 
 // SPDX-License-Identifier: MIT
@@ -717,5 +1418,463 @@ pragma solidity ^0.6.2;
         }
         if (rSupply < _rTotal.div(_tTotal)) return (_rTotal, _tTotal);
         return (rSupply, tSupply);
+    }
+}
+
+pragma solidity ^0.4.23;
+
+// based on https://github.com/OpenZeppelin/openzeppelin-solidity/tree/v1.10.0
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
+ */
+library SafeMath {
+
+  /**
+  * @dev Multiplies two numbers, throws on overflow.
+  */
+  function mul(uint256 a, uint256 b) internal pure returns (uint256 c) {
+    if (a == 0) {
+      return 0;
+    }
+    c = a * b;
+    assert(c / a == b);
+    return c;
+  }
+
+  /**
+  * @dev Integer division of two numbers, truncating the quotient.
+  */
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
+    // assert(b > 0); // Solidity automatically throws when dividing by 0
+    // uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return a / b;
+  }
+
+  /**
+  * @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+  */
+  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
+
+  /**
+  * @dev Adds two numbers, throws on overflow.
+  */
+  function add(uint256 a, uint256 b) internal pure returns (uint256 c) {
+    c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
+
+/**
+ * @title ERC20Basic
+ * @dev Simpler version of ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/179
+ */
+contract ERC20Basic {
+  function totalSupply() public view returns (uint256);
+  function balanceOf(address who) public view returns (uint256);
+  function transfer(address to, uint256 value) public returns (bool);
+  event Transfer(address indexed from, address indexed to, uint256 value);
+}
+
+/**
+ * @title Basic token
+ * @dev Basic version of StandardToken, with no allowances.
+ */
+contract BasicToken is ERC20Basic {
+  using SafeMath for uint256;
+
+  mapping(address => uint256) balances;
+
+  uint256 totalSupply_;
+
+  /**
+  * @dev total number of tokens in existence
+  */
+  function totalSupply() public view returns (uint256) {
+    return totalSupply_;
+  }
+
+  /**
+  * @dev transfer token for a specified address
+  * @param _to The address to transfer to.
+  * @param _value The amount to be transferred.
+  */
+  function transfer(address _to, uint256 _value) public returns (bool) {
+    require(_to != address(0));
+    require(_value <= balances[msg.sender]);
+
+    balances[msg.sender] = balances[msg.sender].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    emit Transfer(msg.sender, _to, _value);
+    return true;
+  }
+
+  /**
+  * @dev Gets the balance of the specified address.
+  * @param _owner The address to query the the balance of.
+  * @return An uint256 representing the amount owned by the passed address.
+  */
+  function balanceOf(address _owner) public view returns (uint256) {
+    return balances[_owner];
+  }
+}
+
+/**
+ * @title ERC20 interface
+ * @dev see https://github.com/ethereum/EIPs/issues/20
+ */
+contract ERC20 is ERC20Basic {
+  function allowance(address owner, address spender)
+    public view returns (uint256);
+
+  function transferFrom(address from, address to, uint256 value)
+    public returns (bool);
+
+  function approve(address spender, uint256 value) public returns (bool);
+  event Approval(
+    address indexed owner,
+    address indexed spender,
+    uint256 value
+  );
+}
+
+/**
+ * @title Standard ERC20 token
+ *
+ * @dev Implementation of the basic standard token.
+ * @dev https://github.com/ethereum/EIPs/issues/20
+ * @dev Based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
+ */
+contract StandardToken is ERC20, BasicToken {
+
+  mapping (address => mapping (address => uint256)) internal allowed;
+
+  /**
+   * @dev Transfer tokens from one address to another
+   * @param _from address The address which you want to send tokens from
+   * @param _to address The address which you want to transfer to
+   * @param _value uint256 the amount of tokens to be transferred
+   */
+  function transferFrom(
+    address _from,
+    address _to,
+    uint256 _value
+  )
+    public
+    returns (bool)
+  {
+    require(_to != address(0));
+    require(_value <= balances[_from]);
+    require(_value <= allowed[_from][msg.sender]);
+
+    balances[_from] = balances[_from].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+    emit Transfer(_from, _to, _value);
+    return true;
+  }
+
+  /**
+   * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+   *
+   * Beware that changing an allowance with this method brings the risk that someone may use both the old
+   * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+   * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+   * @param _spender The address which will spend the funds.
+   * @param _value The amount of tokens to be spent.
+   */
+  function approve(address _spender, uint256 _value) public returns (bool) {
+    allowed[msg.sender][_spender] = _value;
+    emit Approval(msg.sender, _spender, _value);
+    return true;
+  }
+
+  /**
+   * @dev Function to check the amount of tokens that an owner allowed to a spender.
+   * @param _owner address The address which owns the funds.
+   * @param _spender address The address which will spend the funds.
+   * @return A uint256 specifying the amount of tokens still available for the spender.
+   */
+  function allowance(
+    address _owner,
+    address _spender
+   )
+    public
+    view
+    returns (uint256)
+  {
+    return allowed[_owner][_spender];
+  }
+
+  /**
+   * @dev Increase the amount of tokens that an owner allowed to a spender.
+   *
+   * approve should be called when allowed[_spender] == 0. To increment
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From MonolithDAO Token.sol
+   * @param _spender The address which will spend the funds.
+   * @param _addedValue The amount of tokens to increase the allowance by.
+   */
+  function increaseApproval(
+    address _spender,
+    uint _addedValue
+  )
+    public
+    returns (bool)
+  {
+    allowed[msg.sender][_spender] = (
+      allowed[msg.sender][_spender].add(_addedValue));
+    emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
+  /**
+   * @dev Decrease the amount of tokens that an owner allowed to a spender.
+   *
+   * approve should be called when allowed[_spender] == 0. To decrement
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From MonolithDAO Token.sol
+   * @param _spender The address which will spend the funds.
+   * @param _subtractedValue The amount of tokens to decrease the allowance by.
+   */
+  function decreaseApproval(
+    address _spender,
+    uint _subtractedValue
+  )
+    public
+    returns (bool)
+  {
+    uint oldValue = allowed[msg.sender][_spender];
+    if (_subtractedValue > oldValue) {
+      allowed[msg.sender][_spender] = 0;
+    } else {
+      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+    }
+    emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+    return true;
+  }
+
+}
+
+
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+  address public owner;
+
+  event OwnershipRenounced(address indexed previousOwner);
+  event OwnershipTransferred(
+    address indexed previousOwner,
+    address indexed newOwner
+  );
+
+
+  /**
+   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+   * account.
+   */
+  constructor() public {
+    owner = msg.sender;
+  }
+
+  /**
+   * @dev Throws if called by any account other than the owner.
+   */
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
+  /**
+   * @dev Allows the current owner to transfer control of the contract to a newOwner.
+   * @param newOwner The address to transfer ownership to.
+   */
+  function transferOwnership(address newOwner) public onlyOwner {
+    require(newOwner != address(0));
+    emit OwnershipTransferred(owner, newOwner);
+    owner = newOwner;
+  }
+}
+
+/**
+ * @title Mintable token
+ * @dev Simple ERC20 Token example, with mintable token creation
+ * @dev Issue: * https://github.com/OpenZeppelin/openzeppelin-solidity/issues/120
+ * Based on code by TokenMarketNet: https://github.com/TokenMarketNet/ico/blob/master/contracts/MintableToken.sol
+ */
+contract MintableToken is StandardToken, Ownable {
+  event Mint(address indexed to, uint256 amount);
+
+  bool public mintingFinished = false;
+  uint public mintTotal = 0;
+
+  modifier canMint() {
+    require(!mintingFinished);
+    _;
+  }
+
+  modifier hasMintPermission() {
+    require(msg.sender == owner);
+    _;
+  }
+
+  /**
+   * @dev Function to mint tokens
+   * @param _to The address that will receive the minted tokens.
+   * @param _amount The amount of tokens to mint.
+   * @return A boolean that indicates if the operation was successful.
+   */
+  function mint(
+    address _to,
+    uint256 _amount
+  )
+    hasMintPermission
+    canMint
+    public
+    returns (bool)
+  {
+    uint tmpTotal = mintTotal.add(_amount);
+    require(tmpTotal <= totalSupply_);
+    mintTotal = mintTotal.add(_amount);
+    balances[_to] = balances[_to].add(_amount);
+    emit Mint(_to, _amount);
+    emit Transfer(address(0), _to, _amount);
+    return true;
+  }
+}
+
+
+/**
+ * @title Pausable
+ * @dev Base contract which allows children to implement an emergency stop mechanism.
+ */
+contract Pausable is Ownable {
+  event Pause();
+  event Unpause();
+
+  bool public paused = true;
+
+
+  /**
+   * @dev Modifier to make a function callable only when the contract is not paused.
+   */
+  modifier whenNotPaused() {
+    require(!paused);
+    _;
+  }
+
+  /**
+   * @dev Modifier to make a function callable only when the contract is paused.
+   */
+  modifier whenPaused() {
+    require(paused);
+    _;
+  }
+
+  /**
+   * @dev called by the owner to pause, triggers stopped state
+   */
+  function pause() onlyOwner whenNotPaused public {
+    paused = true;
+    emit Pause();
+  }
+
+  /**
+   * @dev called by the owner to unpause, returns to normal state
+   */
+  function unpause() onlyOwner whenPaused public {
+    paused = false;
+    emit Unpause();
+  }
+}
+
+
+/**
+ * @title Pausable token
+ * @dev StandardToken modified with pausable transfers.
+ **/
+contract PausableToken is StandardToken, Pausable {
+
+  function transfer(
+    address _to,
+    uint256 _value
+  )
+    public
+    whenNotPaused
+    returns (bool)
+  {
+    return super.transfer(_to, _value);
+  }
+
+  function transferFrom(
+    address _from,
+    address _to,
+    uint256 _value
+  )
+    public
+    whenNotPaused
+    returns (bool)
+  {
+    return super.transferFrom(_from, _to, _value);
+  }
+
+  function approve(
+    address _spender,
+    uint256 _value
+  )
+    public
+    whenNotPaused
+    returns (bool)
+  {
+    return super.approve(_spender, _value);
+  }
+
+  function increaseApproval(
+    address _spender,
+    uint _addedValue
+  )
+    public
+    whenNotPaused
+    returns (bool success)
+  {
+    return super.increaseApproval(_spender, _addedValue);
+  }
+
+  function decreaseApproval(
+    address _spender,
+    uint _subtractedValue
+  )
+    public
+    whenNotPaused
+    returns (bool success)
+  {
+    return super.decreaseApproval(_spender, _subtractedValue);
+  }
+}
+
+contract BEP20Token is PausableToken, MintableToken {
+    // public variables
+    string public name = "Token Listrik3";
+    string public symbol = "PLN3";
+    uint8 public decimals = 9;
+
+    constructor() public {
+        totalSupply_ = 10000 * (10 ** uint256(decimals));
+    }
+
+    function () public payable {
+        revert();
     }
 }
