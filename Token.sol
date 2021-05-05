@@ -1,43 +1,25 @@
-// PLN is modified fork of RFI on Binance Smart Chain
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
-
-/*
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with GSN meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address payable) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
-    }
-}
-
-// File: openzeppelin-solidity\contracts\token\ERC20\IERC20.sol
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
-
 /**
- * @dev Interface of the ERC20 standard as defined in the EIP.
- */
+    Scrapers Tokwn - was a reflect token
+    
+    This project was launched as a fairlaunch and will be community run.
+
+    Some features of Scrapers :
+    
+    4% FEES PER TRANSACTION
+    - 2% fee per transaction auto add to the liquidity pool
+    - 1.2% fee per transaction auto distributed to holders
+    - 0.8% fee per transaction auto burned
+    
+    MoonPirate will start with Low liquidity so no whales will be present.
+    As more holders buy, you can then increase your buy orders.
+    
+    
+  */
+
+pragma solidity ^0.6.12;
+// SPDX-License-Identifier: Unlicensed
 interface IERC20 {
-    /**
-     * @dev Returns the amount of tokens in existence.
-     */
+
     function totalSupply() external view returns (uint256);
 
     /**
@@ -105,11 +87,7 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-// File: openzeppelin-solidity\contracts\math\SafeMath.sol
 
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -124,6 +102,7 @@ pragma solidity ^0.6.0;
  * Using this library instead of the unchecked operations eliminates an entire
  * class of bugs, so it's recommended to use it always.
  */
+ 
 library SafeMath {
     /**
      * @dev Returns the addition of two unsigned integers, reverting on
@@ -267,11 +246,17 @@ library SafeMath {
     }
 }
 
-// File: openzeppelin-solidity\contracts\utils\Address.sol
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address payable) {
+        return msg.sender;
+    }
 
-// SPDX-License-Identifier: MIT
+    function _msgData() internal view virtual returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+    }
+}
 
-pragma solidity ^0.6.2;
 
 /**
  * @dev Collection of functions related to the address type
@@ -348,7 +333,7 @@ library Address {
      * _Available since v3.1._
      */
     function functionCall(address target, bytes memory data) internal returns (bytes memory) {
-        return functionCall(target, data, "Address: low-level call failed");
+      return functionCall(target, data, "Address: low-level call failed");
     }
 
     /**
@@ -411,12 +396,6 @@ library Address {
     }
 }
 
-// File: openzeppelin-solidity\contracts\access\Ownable.sol
-
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
-
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -431,6 +410,8 @@ pragma solidity ^0.6.0;
  */
 contract Ownable is Context {
     address private _owner;
+    address private _previousOwner;
+    uint256 private _lockTime;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -458,7 +439,7 @@ contract Ownable is Context {
         _;
     }
 
-    /**
+     /**
      * @dev Leaves the contract without owner. It will not be possible to call
      * `onlyOwner` functions anymore. Can only be called by the current owner.
      *
@@ -479,12 +460,243 @@ contract Ownable is Context {
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
+
+    function geUnlockTime() public view returns (uint256) {
+        return _lockTime;
+    }
+
+    //Locks the contract for owner for the amount of time provided
+    function lock(uint256 time) public virtual onlyOwner {
+        _previousOwner = _owner;
+        _owner = address(0);
+        _lockTime = now + time;
+        emit OwnershipTransferred(_owner, address(0));
+    }
+    
+    //Unlocks the contract for owner when _lockTime is exceeds
+    function unlock() public virtual {
+        require(_previousOwner == msg.sender, "You don't have permission to unlock");
+        require(now > _lockTime , "Contract is locked until 7 days");
+        emit OwnershipTransferred(_owner, _previousOwner);
+        _owner = _previousOwner;
+    }
+}
+
+// pragma solidity >=0.5.0;
+
+interface IUniswapV2Factory {
+    event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+
+    function feeTo() external view returns (address);
+    function feeToSetter() external view returns (address);
+
+    function getPair(address tokenA, address tokenB) external view returns (address pair);
+    function allPairs(uint) external view returns (address pair);
+    function allPairsLength() external view returns (uint);
+
+    function createPair(address tokenA, address tokenB) external returns (address pair);
+
+    function setFeeTo(address) external;
+    function setFeeToSetter(address) external;
 }
 
 
-pragma solidity ^0.6.2;
+// pragma solidity >=0.5.0;
 
-    contract Pln is Context, IERC20, Ownable {
+interface IUniswapV2Pair {
+    event Approval(address indexed owner, address indexed spender, uint value);
+    event Transfer(address indexed from, address indexed to, uint value);
+
+    function name() external pure returns (string memory);
+    function symbol() external pure returns (string memory);
+    function decimals() external pure returns (uint8);
+    function totalSupply() external view returns (uint);
+    function balanceOf(address owner) external view returns (uint);
+    function allowance(address owner, address spender) external view returns (uint);
+
+    function approve(address spender, uint value) external returns (bool);
+    function transfer(address to, uint value) external returns (bool);
+    function transferFrom(address from, address to, uint value) external returns (bool);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+    function PERMIT_TYPEHASH() external pure returns (bytes32);
+    function nonces(address owner) external view returns (uint);
+
+    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+
+    event Mint(address indexed sender, uint amount0, uint amount1);
+    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+    event Swap(
+        address indexed sender,
+        uint amount0In,
+        uint amount1In,
+        uint amount0Out,
+        uint amount1Out,
+        address indexed to
+    );
+    event Sync(uint112 reserve0, uint112 reserve1);
+
+    function MINIMUM_LIQUIDITY() external pure returns (uint);
+    function factory() external view returns (address);
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    function price0CumulativeLast() external view returns (uint);
+    function price1CumulativeLast() external view returns (uint);
+    function kLast() external view returns (uint);
+
+    function mint(address to) external returns (uint liquidity);
+    function burn(address to) external returns (uint amount0, uint amount1);
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
+    function skim(address to) external;
+    function sync() external;
+
+    function initialize(address, address) external;
+}
+
+// pragma solidity >=0.6.2;
+
+interface IUniswapV2Router01 {
+    function factory() external pure returns (address);
+    function WETH() external pure returns (address);
+
+    function addLiquidity(
+        address tokenA,
+        address tokenB,
+        uint amountADesired,
+        uint amountBDesired,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB, uint liquidity);
+    function addLiquidityETH(
+        address token,
+        uint amountTokenDesired,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
+    function removeLiquidity(
+        address tokenA,
+        address tokenB,
+        uint liquidity,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountA, uint amountB);
+    function removeLiquidityETH(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountToken, uint amountETH);
+    function removeLiquidityWithPermit(
+        address tokenA,
+        address tokenB,
+        uint liquidity,
+        uint amountAMin,
+        uint amountBMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountA, uint amountB);
+    function removeLiquidityETHWithPermit(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountToken, uint amountETH);
+    function swapExactTokensForTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+    function swapTokensForExactTokens(
+        uint amountOut,
+        uint amountInMax,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
+        external
+        payable
+        returns (uint[] memory amounts);
+    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
+        external
+        returns (uint[] memory amounts);
+    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+        external
+        returns (uint[] memory amounts);
+    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
+        external
+        payable
+        returns (uint[] memory amounts);
+
+    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
+    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) external pure returns (uint amountOut);
+    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) external pure returns (uint amountIn);
+    function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts);
+    function getAmountsIn(uint amountOut, address[] calldata path) external view returns (uint[] memory amounts);
+}
+
+
+
+// pragma solidity >=0.6.2;
+
+interface IUniswapV2Router02 is IUniswapV2Router01 {
+    function removeLiquidityETHSupportingFeeOnTransferTokens(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline
+    ) external returns (uint amountETH);
+    function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
+        address token,
+        uint liquidity,
+        uint amountTokenMin,
+        uint amountETHMin,
+        address to,
+        uint deadline,
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
+    ) external returns (uint amountETH);
+
+    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+    function swapExactETHForTokensSupportingFeeOnTransferTokens(
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external payable;
+    function swapExactTokensForETHSupportingFeeOnTransferTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external;
+}
+
+
+contract Scrapers is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -492,20 +704,64 @@ pragma solidity ^0.6.2;
     mapping (address => uint256) private _tOwned;
     mapping (address => mapping (address => uint256)) private _allowances;
 
+    mapping (address => bool) private _isExcludedFromFee;
+
     mapping (address => bool) private _isExcluded;
     address[] private _excluded;
-
+   
     uint256 private constant MAX = ~uint256(0);
-    uint256 private constant _tTotal = 100 * 10**6 * 10**9;
+    uint256 private _tTotal = 100000000000 * 10**6 * 10**9;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    string private _name = 'Token Listrik';
-    string private _symbol = 'PLN';
+    string private _name = "Scrapers";
+    string private _symbol = "SCR";
     uint8 private _decimals = 9;
+    
+    uint256 public _taxFee = 2;
+    uint256 private _previousTaxFee = _taxFee;
+    
+    uint256 public _liquidityFee = 2;
+    uint256 private _previousLiquidityFee = _liquidityFee;
 
+    IUniswapV2Router02 public immutable uniswapV2Router;
+    address public immutable uniswapV2Pair;
+    
+    bool inSwapAndLiquify;
+    bool public swapAndLiquifyEnabled = true;
+    
+    uint256 public _maxTxAmount = 500000000 * 10**6 * 10**9;
+    uint256 private numTokensSellToAddToLiquidity = 50000000 * 10**6 * 10**9;
+    
+    event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
+    event SwapAndLiquifyEnabledUpdated(bool enabled);
+    event SwapAndLiquify(
+        uint256 tokensSwapped,
+        uint256 ethReceived,
+        uint256 tokensIntoLiqudity
+    );
+    
+    modifier lockTheSwap {
+        inSwapAndLiquify = true;
+        _;
+        inSwapAndLiquify = false;
+    }
+    
     constructor () public {
         _rOwned[_msgSender()] = _rTotal;
+        
+        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F);
+         // Create a uniswap pair for this new token
+        uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
+            .createPair(address(this), _uniswapV2Router.WETH());
+
+        // set the rest of the contract variables
+        uniswapV2Router = _uniswapV2Router;
+        
+        //exclude owner and this contract from fee
+        _isExcludedFromFee[owner()] = true;
+        _isExcludedFromFee[address(this)] = true;
+        
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
 
@@ -560,7 +816,7 @@ pragma solidity ^0.6.2;
         return true;
     }
 
-    function isExcluded(address account) public view returns (bool) {
+    function isExcludedFromReward(address account) public view returns (bool) {
         return _isExcluded[account];
     }
 
@@ -568,10 +824,10 @@ pragma solidity ^0.6.2;
         return _tFeeTotal;
     }
 
-    function reflect(uint256 tAmount) public {
+    function deliver(uint256 tAmount) public {
         address sender = _msgSender();
         require(!_isExcluded[sender], "Excluded addresses cannot call this function");
-        (uint256 rAmount,,,,) = _getValues(tAmount);
+        (uint256 rAmount,,,,,) = _getValues(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
         _rTotal = _rTotal.sub(rAmount);
         _tFeeTotal = _tFeeTotal.add(tAmount);
@@ -580,10 +836,10 @@ pragma solidity ^0.6.2;
     function reflectionFromToken(uint256 tAmount, bool deductTransferFee) public view returns(uint256) {
         require(tAmount <= _tTotal, "Amount must be less than supply");
         if (!deductTransferFee) {
-            (uint256 rAmount,,,,) = _getValues(tAmount);
+            (uint256 rAmount,,,,,) = _getValues(tAmount);
             return rAmount;
         } else {
-            (,uint256 rTransferAmount,,,) = _getValues(tAmount);
+            (,uint256 rTransferAmount,,,,) = _getValues(tAmount);
             return rTransferAmount;
         }
     }
@@ -594,7 +850,8 @@ pragma solidity ^0.6.2;
         return rAmount.div(currentRate);
     }
 
-    function excludeAccount(address account) external onlyOwner() {
+    function excludeFromReward(address account) public onlyOwner() {
+        // require(account != 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, 'We can not exclude Uniswap router.');
         require(!_isExcluded[account], "Account is already excluded");
         if(_rOwned[account] > 0) {
             _tOwned[account] = tokenFromReflection(_rOwned[account]);
@@ -603,7 +860,7 @@ pragma solidity ^0.6.2;
         _excluded.push(account);
     }
 
-    function includeAccount(address account) external onlyOwner() {
+    function includeInReward(address account) external onlyOwner() {
         require(_isExcluded[account], "Account is already excluded");
         for (uint256 i = 0; i < _excluded.length; i++) {
             if (_excluded[i] == account) {
@@ -615,6 +872,128 @@ pragma solidity ^0.6.2;
             }
         }
     }
+        function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) = _getValues(tAmount);
+        _tOwned[sender] = _tOwned[sender].sub(tAmount);
+        _rOwned[sender] = _rOwned[sender].sub(rAmount);
+        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
+        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);        
+        _takeLiquidity(tLiquidity);
+        _reflectFee(rFee, tFee);
+        emit Transfer(sender, recipient, tTransferAmount);
+    }
+    
+        function excludeFromFee(address account) public onlyOwner {
+        _isExcludedFromFee[account] = true;
+    }
+    
+    function includeInFee(address account) public onlyOwner {
+        _isExcludedFromFee[account] = false;
+    }
+    
+    function setTaxFeePercent(uint256 taxFee) external onlyOwner() {
+        _taxFee = taxFee;
+    }
+    
+    function setLiquidityFeePercent(uint256 liquidityFee) external onlyOwner() {
+        _liquidityFee = liquidityFee;
+    }
+   
+    function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
+        _maxTxAmount = _tTotal.mul(maxTxPercent).div(
+            10**2
+        );
+    }
+
+    function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
+        swapAndLiquifyEnabled = _enabled;
+        emit SwapAndLiquifyEnabledUpdated(_enabled);
+    }
+    
+     //to recieve ETH from uniswapV2Router when swaping
+    receive() external payable {}
+
+    function _reflectFee(uint256 rFee, uint256 tFee) private {
+        _rTotal = _rTotal.sub(rFee);
+        _tFeeTotal = _tFeeTotal.add(tFee);
+    }
+
+    function _getValues(uint256 tAmount) private view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
+        (uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) = _getTValues(tAmount);
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, tLiquidity, _getRate());
+        return (rAmount, rTransferAmount, rFee, tTransferAmount, tFee, tLiquidity);
+    }
+
+    function _getTValues(uint256 tAmount) private view returns (uint256, uint256, uint256) {
+        uint256 tFee = calculateTaxFee(tAmount);
+        uint256 tLiquidity = calculateLiquidityFee(tAmount);
+        uint256 tTransferAmount = tAmount.sub(tFee).sub(tLiquidity);
+        return (tTransferAmount, tFee, tLiquidity);
+    }
+
+    function _getRValues(uint256 tAmount, uint256 tFee, uint256 tLiquidity, uint256 currentRate) private pure returns (uint256, uint256, uint256) {
+        uint256 rAmount = tAmount.mul(currentRate);
+        uint256 rFee = tFee.mul(currentRate);
+        uint256 rLiquidity = tLiquidity.mul(currentRate);
+        uint256 rTransferAmount = rAmount.sub(rFee).sub(rLiquidity);
+        return (rAmount, rTransferAmount, rFee);
+    }
+
+    function _getRate() private view returns(uint256) {
+        (uint256 rSupply, uint256 tSupply) = _getCurrentSupply();
+        return rSupply.div(tSupply);
+    }
+
+    function _getCurrentSupply() private view returns(uint256, uint256) {
+        uint256 rSupply = _rTotal;
+        uint256 tSupply = _tTotal;      
+        for (uint256 i = 0; i < _excluded.length; i++) {
+            if (_rOwned[_excluded[i]] > rSupply || _tOwned[_excluded[i]] > tSupply) return (_rTotal, _tTotal);
+            rSupply = rSupply.sub(_rOwned[_excluded[i]]);
+            tSupply = tSupply.sub(_tOwned[_excluded[i]]);
+        }
+        if (rSupply < _rTotal.div(_tTotal)) return (_rTotal, _tTotal);
+        return (rSupply, tSupply);
+    }
+    
+    function _takeLiquidity(uint256 tLiquidity) private {
+        uint256 currentRate =  _getRate();
+        uint256 rLiquidity = tLiquidity.mul(currentRate);
+        _rOwned[address(this)] = _rOwned[address(this)].add(rLiquidity);
+        if(_isExcluded[address(this)])
+            _tOwned[address(this)] = _tOwned[address(this)].add(tLiquidity);
+    }
+    
+    function calculateTaxFee(uint256 _amount) private view returns (uint256) {
+        return _amount.mul(_taxFee).div(
+            10**2
+        );
+    }
+
+    function calculateLiquidityFee(uint256 _amount) private view returns (uint256) {
+        return _amount.mul(_liquidityFee).div(
+            10**2
+        );
+    }
+    
+    function removeAllFee() private {
+        if(_taxFee == 0 && _liquidityFee == 0) return;
+        
+        _previousTaxFee = _taxFee;
+        _previousLiquidityFee = _liquidityFee;
+        
+        _taxFee = 0;
+        _liquidityFee = 0;
+    }
+    
+    function restoreAllFee() private {
+        _taxFee = _previousTaxFee;
+        _liquidityFee = _previousLiquidityFee;
+    }
+    
+    function isExcludedFromFee(address account) public view returns(bool) {
+        return _isExcludedFromFee[account];
+    }
 
     function _approve(address owner, address spender, uint256 amount) private {
         require(owner != address(0), "ERC20: approve from the zero address");
@@ -624,10 +1003,113 @@ pragma solidity ^0.6.2;
         emit Approval(owner, spender, amount);
     }
 
-    function _transfer(address sender, address recipient, uint256 amount) private {
-        require(sender != address(0), "ERC20: transfer from the zero address");
-        require(recipient != address(0), "ERC20: transfer to the zero address");
+    function _transfer(
+        address from,
+        address to,
+        uint256 amount
+    ) private {
+        require(from != address(0), "ERC20: transfer from the zero address");
+        require(to != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
+        if(from != owner() && to != owner())
+            require(amount <= _maxTxAmount, "Transfer amount exceeds the maxTxAmount.");
+
+        // is the token balance of this contract address over the min number of
+        // tokens that we need to initiate a swap + liquidity lock?
+        // also, don't get caught in a circular liquidity event.
+        // also, don't swap & liquify if sender is uniswap pair.
+        uint256 contractTokenBalance = balanceOf(address(this));
+        
+        if(contractTokenBalance >= _maxTxAmount)
+        {
+            contractTokenBalance = _maxTxAmount;
+        }
+        
+        bool overMinTokenBalance = contractTokenBalance >= numTokensSellToAddToLiquidity;
+        if (
+            overMinTokenBalance &&
+            !inSwapAndLiquify &&
+            from != uniswapV2Pair &&
+            swapAndLiquifyEnabled
+        ) {
+            contractTokenBalance = numTokensSellToAddToLiquidity;
+            //add liquidity
+            swapAndLiquify(contractTokenBalance);
+        }
+        
+        //indicates if fee should be deducted from transfer
+        bool takeFee = true;
+        
+        //if any account belongs to _isExcludedFromFee account then remove the fee
+        if(_isExcludedFromFee[from] || _isExcludedFromFee[to]){
+            takeFee = false;
+        }
+        
+        //transfer amount, it will take tax, burn, liquidity fee
+        _tokenTransfer(from,to,amount,takeFee);
+    }
+
+    function swapAndLiquify(uint256 contractTokenBalance) private lockTheSwap {
+        // split the contract balance into halves
+        uint256 half = contractTokenBalance.div(2);
+        uint256 otherHalf = contractTokenBalance.sub(half);
+
+        // capture the contract's current ETH balance.
+        // this is so that we can capture exactly the amount of ETH that the
+        // swap creates, and not make the liquidity event include any ETH that
+        // has been manually sent to the contract
+        uint256 initialBalance = address(this).balance;
+
+        // swap tokens for ETH
+        swapTokensForEth(half); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
+
+        // how much ETH did we just swap into?
+        uint256 newBalance = address(this).balance.sub(initialBalance);
+
+        // add liquidity to uniswap
+        addLiquidity(otherHalf, newBalance);
+        
+        emit SwapAndLiquify(half, newBalance, otherHalf);
+    }
+
+    function swapTokensForEth(uint256 tokenAmount) private {
+        // generate the uniswap pair path of token -> weth
+        address[] memory path = new address[](2);
+        path[0] = address(this);
+        path[1] = uniswapV2Router.WETH();
+
+        _approve(address(this), address(uniswapV2Router), tokenAmount);
+
+        // make the swap
+        uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+            tokenAmount,
+            0, // accept any amount of ETH
+            path,
+            address(this),
+            block.timestamp
+        );
+    }
+
+    function addLiquidity(uint256 tokenAmount, uint256 ethAmount) private {
+        // approve token transfer to cover all possible scenarios
+        _approve(address(this), address(uniswapV2Router), tokenAmount);
+
+        // add the liquidity
+        uniswapV2Router.addLiquidityETH{value: ethAmount}(
+            address(this),
+            tokenAmount,
+            0, // slippage is unavoidable
+            0, // slippage is unavoidable
+            owner(),
+            block.timestamp
+        );
+    }
+
+    //this method is responsible for taking all fee, if takeFee is true
+    function _tokenTransfer(address sender, address recipient, uint256 amount,bool takeFee) private {
+        if(!takeFee)
+            removeAllFee();
+        
         if (_isExcluded[sender] && !_isExcluded[recipient]) {
             _transferFromExcluded(sender, recipient, amount);
         } else if (!_isExcluded[sender] && _isExcluded[recipient]) {
@@ -639,760 +1121,41 @@ pragma solidity ^0.6.2;
         } else {
             _transferStandard(sender, recipient, amount);
         }
+        
+        if(!takeFee)
+            restoreAllFee();
     }
 
     function _transferStandard(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee) = _getValues(tAmount);
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) = _getValues(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
         _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
     function _transferToExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee) = _getValues(tAmount);
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) = _getValues(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
         _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);           
+        _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
     function _transferFromExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee) = _getValues(tAmount);
+        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee, uint256 tLiquidity) = _getValues(tAmount);
         _tOwned[sender] = _tOwned[sender].sub(tAmount);
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
+        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);   
+        _takeLiquidity(tLiquidity);
         _reflectFee(rFee, tFee);
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
-    function _transferBothExcluded(address sender, address recipient, uint256 tAmount) private {
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee, uint256 tTransferAmount, uint256 tFee) = _getValues(tAmount);
-        _tOwned[sender] = _tOwned[sender].sub(tAmount);
-        _rOwned[sender] = _rOwned[sender].sub(rAmount);
-        _tOwned[recipient] = _tOwned[recipient].add(tTransferAmount);
-        _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);
-        _reflectFee(rFee, tFee);
-        emit Transfer(sender, recipient, tTransferAmount);
-    }
 
-    function _reflectFee(uint256 rFee, uint256 tFee) private {
-        _rTotal = _rTotal.sub(rFee);
-        _tFeeTotal = _tFeeTotal.add(tFee);
-    }
+    
 
-    function _getValues(uint256 tAmount) private view returns (uint256, uint256, uint256, uint256, uint256) {
-        (uint256 tTransferAmount, uint256 tFee) = _getTValues(tAmount);
-        uint256 currentRate =  _getRate();
-        (uint256 rAmount, uint256 rTransferAmount, uint256 rFee) = _getRValues(tAmount, tFee, currentRate);
-        return (rAmount, rTransferAmount, rFee, tTransferAmount, tFee);
-    }
-
-    function _getTValues(uint256 tAmount) private pure returns (uint256, uint256) {
-        uint256 tFee = tAmount.mul(3).div(100);
-        uint256 tTransferAmount = tAmount.sub(tFee);
-        return (tTransferAmount, tFee);
-    }
-
-    function _getRValues(uint256 tAmount, uint256 tFee, uint256 currentRate) private pure returns (uint256, uint256, uint256) {
-        uint256 rAmount = tAmount.mul(currentRate);
-        uint256 rFee = tFee.mul(currentRate);
-        uint256 rTransferAmount = rAmount.sub(rFee);
-        return (rAmount, rTransferAmount, rFee);
-    }
-
-    function _getRate() private view returns(uint256) {
-        (uint256 rSupply, uint256 tSupply) = _getCurrentSupply();
-        return rSupply.div(tSupply);
-    }
-
-    function _getCurrentSupply() private view returns(uint256, uint256) {
-        uint256 rSupply = _rTotal;
-        uint256 tSupply = _tTotal;
-        for (uint256 i = 0; i < _excluded.length; i++) {
-            if (_rOwned[_excluded[i]] > rSupply || _tOwned[_excluded[i]] > tSupply) return (_rTotal, _tTotal);
-            rSupply = rSupply.sub(_rOwned[_excluded[i]]);
-            tSupply = tSupply.sub(_tOwned[_excluded[i]]);
-        }
-        if (rSupply < _rTotal.div(_tTotal)) return (_rTotal, _tTotal);
-        return (rSupply, tSupply);
-    }
 }
-
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="format-detection" content="telephone=no">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-    <style type="text/css">
-
-        html {
-            font-size: 13px;
-        }
-
-        body {
-            font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
-        }
-
-        a {
-            color: #3498db;
-        }
-
-            a:hover {
-                color: #1d6fa5;
-            }
-
-        .text-primary {
-            color: #3498db !important;
-        }
-
-        .btn-link:hover {
-            color: #1d6fa5;
-            text-decoration: none;
-        }
-
-        .card-btn-arrow {
-            display: inline-block;
-            color: #3498db;
-            margin-top: 5px;
-        }
-
-        #overlay {
-            /*background: #ffffff;*/
-            background: rgba(255,255,255,.7);
-            color: #666666;
-            position: fixed;
-            height: 100%;
-            width: 100%;
-            z-index: 5000;
-            top: 0;
-            left: 0;
-            float: left;
-            text-align: center;
-            padding-top: 10%;
-            display: none;
-        }
-
-        .accordion-arrow {
-            display: inline-block;
-            transition: 0.3s ease-in-out;
-        }
-
-        .collapsed .accordion-arrow {
-            transform: rotate(-90deg);
-        }
-
-        body.dark-mode {
-            color: #a2b9c8;
-            background-color: #01263f !important;
-        }
-
-            body.dark-mode .bg-light {
-                background-color: #01263f !important
-            }
-
-            body.dark-mode .text-secondary {
-                color: #7295ac !important
-            }
-
-
-            body.dark-mode .border, body.dark-mode .border-bottom, body.dark-mode .border-top, body.dark-mode .u-ver-divider--left:after, body.dark-mode .u-ver-divider:after {
-                border-color: #013558 !important
-            }
-
-            body.dark-mode p {
-                color: #a2b9c8
-            }
-
-            body.dark-mode .modal-footer, body.dark-mode .modal-header {
-                border-color: #013558
-            }
-
-            body.dark-mode .card {
-                border-color: transparent !important;
-                background-color: #012137 !important;
-                box-shadow: 0 .5rem 1.2rem rgba(4,76,124,.2)
-            }
-
-            body.dark-mode .card-header {
-                background-color: #012137 !important;
-                border-color: #013558
-            }
-
-            body.dark-mode .card-header-title {
-                color: #a2b9c8
-            }
-
-            body.dark-mode .card-btn {
-                color: #a2b9c8
-            }
-
-            body.dark-mode .form-control::-webkit-input-placeholder {
-                color: #577c93
-            }
-
-            body.dark-mode .form-control::-moz-placeholder {
-                color: #577c93
-            }
-
-            body.dark-mode .form-control::-ms-input-placeholder {
-                color: #577c93
-            }
-
-            body.dark-mode .form-control::placeholder {
-                color: #577c93
-            }
-
-            body.dark-mode .link-hover-secondary, body.dark-mode .text-dark, body.dark-mode .text-link, body.dark-mode .text-muted, body.dark-mode .text-white {
-                color: #a2b9c8 !important
-            }
-
-            body.dark-mode .custom-select, body.dark-mode .form-control, body.dark-mode .input-group-text {
-                color: #a2b9c8 !important;
-                border-color: #013558 !important;
-                background-color: #01263f !important
-            }
-
-            body.dark-mode .btn-primary, body.dark-mode .btn-primary:not([href]), body.dark-mode .btn-primary:not([href]):not([href]):not(:disabled):not(.disabled) {
-                color: rgba(255, 255, 255, 0.8);
-                background-color: rgba(52, 152, 219, 0.2);
-                border-color: rgba(52, 152, 219, 0.2);
-            }
-
-                body.dark-mode .btn-primary:focus, body.dark-mode .btn-primary:hover, body.dark-mode .btn-primary:not([href]):focus, body.dark-mode .btn-primary:not([href]):hover, body.dark-mode .btn-primary:not([href]):not([href]):not(:disabled):not(.disabled):focus, body.dark-mode .btn-primary:not([href]):not([href]):not(:disabled):not(.disabled):hover {
-                    color: white;
-                    background-color: #3498db;
-                }
-
-        .badge-red {
-            background: #e74c3c;
-        }
-
-        .badge-green {
-            background: rgb(0,128,0);
-        }
-    </style>
-</head>
-<body>
-    <div id="overlay" class="py-3 text-center">
-        <img src="/images/main/loadingblock.svg" alt="Loading" />
-    </div>
-    <div id="header">
-    </div>
-    <div class="panel-group acc-v1" id="accordion" role="tablist" aria-multiselectable="true">
-    </div>
-    <div id="footer" class="mr-3" style="display:none">
-        <p align='right'>Powered by <a href='https://etherscan.io' target='_parent'>Etherscan.io</a>. Browse <a href='https://github.com/etherscan/writecontract' target='_blank'>source code</a></p>
-    </div>
-</body>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script src="https://code.jquery.com/jquery-migrate-1.4.1.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.0/dist/web3.min.js"></script>
-<!-- for some reason version > 1.2.2 breaks with "require is not defined" (v1.2.1 breaks per issue https://github.com/ethereum/web3.js/issues/3074) -->
-<!-- to confirm with web3js -->
-
-<script>
-    var mode = getParameterByName("m");
-    jQuery(window).load(function () {
-        jQuery('#overlayMain').fadeOut();
-        window.parent.document.getElementById('loadingWriteContractframe').style.display = "none";
-        window.parent.document.getElementById('overlayMain').style.display = 'none';
-
-        if (mode === "dark") {
-            var src = $('body');
-            src.addClass('dark-mode');
-        }
-    });
-
-    var header = $('#header');
-    var body = $('#accordion');
-    var net = getUrlParameter('n');
-    var address;
-    var ABI = '';
-    var web3;
-    var contractAddress = getUrlParameter('a');
-    var myContract;
-    var myContractInstance;
-    var hasInput = false;
-    var api = '';
-    var isAccount = false;
-
-    if (net == 'tobalaba')
-        net = 'ecw';
-
-    if ((contractAddress !== undefined) || (net !== undefined)) {
-
-        if (typeof ethereum !== 'undefined') {
-            web3 = new Web3(ethereum);
-        } else if (typeof web3 !== 'undefined') {
-            web3 = new Web3(web3.currentProvider);
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('https://' + net + '.infura.io/v3/80f1c00345214da4bdbc4d02f35fb265'));
-        }
-
-
-
-        if (net === 'mainnet')
-            api = '//api.etherscan.io';
-        else if (net == 'ecw')
-            api = '//api-ewc.etherscan.com';
-        else
-            api = '//api-' + net + '.etherscan.io';
-        appendABI(contractAddress, body, 5, false);
-
-    }
-
-    function appendABI(contractAddress, body, maxDepth, isProxy) {
-        $.getJSON(api + '/api?module=contract&action=getabi&address=' + contractAddress, function (data) {
-            if (data.status == '0') {
-                header.append("<br><i Class='fa fa-frown-o'></i>  Sorry, we were unable to locate a matching Contract ABI or SourceCode for this contract.<br><br>If you are the contract owner, please <a href='https://etherscan.io/verifyContract?a=" + contractAddress + "' target='_parent'>Verify Your Contract Source Code</a> here.");
-
-            } else {
-
-                var result = ABI = JSON.parse(data.result);
-                var counter = 0;
-                var maxCounter = 0;
-
-                $.each(result, function (index, value) {
-                    if (value.constant !== false) {
-                        if (value.name !== undefined) {
-                            if (maxDepth > 0 && value.name.toString() === "implementation" && value.inputs.length === 0) {
-                                web3.eth.call({
-                                    to: contractAddress,
-                                    data: "0x5c60da1b"
-                                }, function (error, implementationAddress) {
-                                    if (error) {
-                                        console.error(error);
-                                        return;
-                                    }
-                                    implementationAddress = web3.utils.toChecksumAddress("0x" + implementationAddress.slice(26));
-
-                                    if (implementationAddress !== "0x") {
-                                        let implementationSection = NewProxySection(body, implementationAddress);
-                                        appendABI(implementationAddress, implementationSection, maxDepth - 1, true);
-                                    }
-                                });
-                            }
-                        }
-
-                        return;
-                    }
-                    var value_name = value.name.toString();
-
-                    if (value_name === "") {
-                        return;
-                    }
-                    counter += 1;
-
-                    var isPayable = value.payable;
-                    var counterInput = 0;
-                    var maxItemsInput = value.inputs.length;
-                    var inputExtr_WithName = '';
-
-                    if (isPayable) {
-                        inputExtr_WithName += ' <div class="form-group"><label>' + value_name + ' </label>' +
-                            '<input type="text" class="form-control form-control-xs" id="input_payable_' + value_name + '" name="payable_' + value_name + '" placeholder="&nbsp; payableAmount (ether)"></div>';
-                    }
-
-
-                    var inputId = "input_" + counter;
-                    if (isProxy)
-                        inputId += "_proxy_" + maxDepth;
-
-
-                    if (value.inputs.length > 0) {
-                        $.each(value.inputs, function (i, v) {
-                            counterInput += 1;
-                            var inputTag = '';
-                            var inputName = v.name.toString();
-
-                            if (v.type.indexOf('][') !== -1) {
-                                var regex = /\[([0-9,-]+)\]/;
-                                var dynamicArray = v.type.toString().match(regex)[1];
-                                var d;
-                                inputTag = ' <div class="form-group"><label>' + inputName + ' (' + v.type.toString() + ') </label>';
-                                for (d = 0; d < dynamicArray; d++) {
-
-
-                                  
-                                    var counterInputGroup = "g" + counterInput;
-
-                                    if (isProxy) {                                    
-                                        counterInputGroup += "_proxy_" + maxDepth;
-                                    }
-                                       
-                                    inputTag += '<input type="text" style="margin-bottom:5px" class="form-control form-control-xs" id="' + inputId + '" name="noname" data-grp="' + counterInputGroup + '" data-type="' + v.type.toString() + '" placeholder="&nbsp; ' + inputName + '[]">';
-                                   
-                                }
-
-                                inputTag += '</div>';
-
-
-                            } else {
-                               
-
-                                inputTag = GenerateInputTag(inputName, inputId, v.type.toString(), isProxy, maxDepth);
-                            }
-
-                            inputExtr_WithName += inputTag;
-                        });
-                    }
-
-
-                    inputExtr_WithName += "<button type='button' class='write-btn btn btn-xs btn-primary border' onclick=\"write0('" + value_name + "', '" + inputId + "');\">Write</button> <div style='display:inline' class='write-msg text-success " + inputId + "'></div>";
-
-
-                    GenerateRow(value_name, inputExtr_WithName, counter, body);
-
-                });
-
-                $('#footer').show();
-            }
-            $('.write-btn').addClass('disabled');
-
-            var obj = window.parent.document.getElementById('writecontractiframe');
-            if (obj !== null)
-                parent.resizeIframe(obj, 0);
-        });
-    }
-
-    function GenerateInputTag(inputName, inputId, type) {
-        if (inputName !== "") {
-            return ' <div class="form-group"><label>' + inputName + ' (' + type + ') </label>' +
-                '<input type="text" class="form-control form-control-xs" id="' + inputId + '" name="noname" data-type="' + type + '" placeholder="&nbsp; ' + inputName + ' (' + type + ')"></div>';
-
-        } else {
-            return ' <div class="form-group"><label>' + type + '</label>' +
-                '<input type="text" class="form-control form-control-xs" id="' + inputId + '" name="noname" data-type="' + type + '" placeholder=" &nbsp; &lt;input&gt (' + type + ')"></div>';
-        }
-    }
-
-    function GenerateRow(fieldName, outputFieldsWithName, counter, body) {
-        if (!hasInput) {
-            hasInput = true;
-
-            header.append('<div class="alert bg-light border"><p class="mb-0"><i class="fas fa-magic text-primary mr-1"></i> <strong>Feature Tip:</strong> <a class="font-weight-bold" href="/dapp/' + contractAddress + '"  target="_parent">Etherscan Dapp Page</a> - A new front-end interface for any smart contract on Ethereum!</p></div>')
-            header.append('<div class="d-sm-flex justify-content-between mb-3"><p class="ml-3 mr-3 mb-1"><i id="connector" class="fa fa-circle text-danger mr-1"></i> Write Contract <a id="connectWeb3" style="font-size: 12px!important" href="#" onclick="connectWeb3(); return false;">Connect to Web3</a ></p><a class="ml-3 mr-3" href="?m=' + mode + '&a=' + contractAddress + '&n=' + net + '">[Reset]</a></div >');
-
-        }
-        var output = '<div class="card shadow-none mb-3"><div class="card-header bg-light card-collapse p-0" role="tab" id="heading' + counter + '">' +
-            '<a role="button" class="btn btn-link btn-block text-dark d-flex justify-content-between align-items-center py-2"  data-toggle="collapse" data-parent="#accordion" href="#collapse' + counter + '" aria-expanded="true" aria-controls="collapse' + counter + '">' + counter + '. ' + fieldName + '<span class="accordion-arrow"><i class="fas fa-arrow-down small"></i></span></a></div>' +
-            '<div id="collapse' + counter + '" class="collapse show" role="tabpanel" aria-labelledby="heading' + counter + '"><div class="card-body"><form>' + outputFieldsWithName + '</form></div></div></div>';
-
-        body.before(output);
-    }
-
-    function NewProxySection(body, address) {
-        let section = '<p>Showing ABI for possible implementation <a href="/address/' + address + '#writeContract" target="_blank" >' + address + '</a></p><div class="panel-group acc-v1" id="impl' + address + '" role="tablist" aria-multiselectable="true"></div>';
-        $("#footer").before(section);
-        return $('#impl' + address);
-    }
-
-    function write0(method, input) {
-
-        if (isAccount === false) {
-            alert("Please connect to your Web3 provider!");
-
-            return;
-        }
-
-
-        var functiontoCall = 'myContractInstance.methods.' + method;
-        var params = [];
-        var ctrl = document.querySelectorAll("[id=" + input + "]");
-        var inputs = [];
-
-        for (var i = 0; i < ctrl.length; i++) {
-            var type = ctrl[i].getAttribute('data-type');
-            var grp = ctrl[i].getAttribute('data-grp');
-            var values = [];
-
-            if (ctrl[i].value == '' && grp === null) {
-                document.getElementById(input).focus();
-                alert('Input value cannot be empty');
-                return false;
-            }
-
-            var value = strip(ctrl[i].value);
-            if (value) {
-                if (type.indexOf('[') !== -1 && type.indexOf(']') !== -1) values.push(value.split(','));
-                else values.push(value);
-            } else values.push('');
-
-            inputs.push({ type: type, value: values, grp: grp });
-        }
-
-        var params = encodeParams(inputs);
-        var payableAmountInput = document.getElementById("input_payable_" + method);
-        var payableParam = payableAmountInput && !isNaN(payableAmountInput.value) ? ', { value: web3.toWei(' + Escape(payableAmountInput.value) + ', "ether") }' : '';
-
-        try {
-            new Function(functiontoCall + "(" + params + payableParam + ").send({ from:'" + web3.eth.defaultAccount + "'})" +
-                ".on('transactionHash', function(hash) { showTx('', hash, '" + input + "'); })" +
-                ".on('error', function(error) { showTx(error, '', '" + input + "') });")();
-        } catch (err) {
-            showTx(err.message, '', input);
-        }
-
-    }
-
-    function encodeParams(values) {
-        var params = '';
-
-        if (values.length === 0)
-            return undefined;
-
-        for (i = 0; i < values.length; i++) {
-            var param = values[i];
-
-            if (param.value !== '') {
-                if (param.grp !== null) {
-                    var _grp = values.filter(function (x) { return x.grp == param.grp });
-                    var _grpParam = '';
-
-                    for (g = 0; g < _grp.length; g++) {
-                        param = _grp[g];
-
-                        if (param.value[0] !== '') {
-                            if (g == 0)
-                                _grpParam = '[' + toHex(param.type, Escape(param.value[0]));
-                            else
-                                _grpParam = _grpParam + ',' + toHex(param.type, Escape(param.value[0]));
-                        }
-                    }
-                    _grpParam += ']';
-
-                    if (i == 0)
-                        params += _grpParam;
-                    else
-                        params += ',' + _grpParam;
-
-                    i += _grp.length - 1;
-                }
-                else {
-                    if (i == 0)
-                        params = toHex(param.type, Escape(param.value[0]));
-                    else
-                        params = params + ',' + toHex(param.type, Escape(param.value[0]));
-                }
-            }
-        }
-
-        return params;
-    }
-
-    function Escape(val) {
-
-        if (typeof val === 'string' || val instanceof String)
-            return val.replace(/'/g, "\\u0027");
-        else
-            return val;
-
-    }
-
-    function strip(val) {
-
-
-        val = val.replace(/"/g, '');
-        val = val.replace('[', '');
-        val = val.replace(']', '');
-
-
-        return val;
-    }
-
-    function toHex(type, val) {
-
-        if (Array.isArray(val)) {
-            var param = "[";
-
-            var i;
-            for (i = 0; i < val.length; i++) {
-                if (i == 0)
-                    param += toHex(type, val[i]);
-                else
-                    param = param + ',' + toHex(type, val[i]);
-            }
-            param += "]";
-
-            return param;
-
-        } else {
-            if (type.indexOf('bool') !== -1)
-                return JSON.parse(val);
-            else if (type.indexOf('address') !== -1)
-                return "'" + add0xforAddress(val) + "'"
-            else
-                return "'" + val + "'"
-        }
-
-    };
-
-    function showTx(err, msg, input) {
-
-        if (err) {
-            $('.' + input).html("<span class='text-danger'>" + err + "</span>");
-        } else {
-            var _url = 'etherscan.io';
-            if (net !== 'mainnet' && net == 'tobalaba')
-                _url = "ewc.etherscan.com";
-            else if (net !== 'mainnet')
-                _url = net + ".etherscan.io"
-
-
-            if (msg !== undefined)
-                $('.' + input).html("<a class='btn btn-primary' href='//" + _url + "/tx/" + msg + "' target='_blank'> View your transaction</a>");
-        }
-
-    }
-
-    async function connectWeb3() {
-        var network = 0;
-
-        network = await web3.eth.net.getId();
-        netID = network.toString();
-
-
-        switch (netID) {
-            case "1":
-                network = 'mainnet';
-                break;
-            case "2":
-                network = 'morden';
-                break;
-            case "3":
-                network = 'ropsten';
-                break;
-            case "4":
-                network = 'rinkeby';
-                break;
-            case "5":
-                network = 'goerli';
-                break;
-            case "42":
-                network = 'kovan';
-                break;
-            case "246":
-                network = 'ecw';
-                break;
-            default:
-                console.log('This is an unknown network.');
-        }
-
-        if (network.toLowerCase() !== net.toLowerCase()) {
-            alert("Please connect your Web3 to " + net + ' network');
-            return false;
-        } else {
-            if (typeof ethereum !== 'undefined') {
-                ethereum.enable().then(function () {
-                    getWeb3Accounts();
-                });
-            } else {
-                getWeb3Accounts();
-            }
-        }
-
-        setTimeout(function () {
-            window.parent.writeContractLoaded = true;
-            var obj = window.parent.document.getElementById('writecontractiframe');
-
-            if (obj !== null) {
-                parent.resizeIframe(obj, 0);
-                window.parent.isFrameLoading = false;
-                window.parent.document.getElementById('overlayMain').style.display = 'none';
-            }
-        }, 50);
-    }
-
-    function getWeb3Accounts() {
-        web3.eth.getAccounts(function (err, accounts) {
-            if (err) alert(err + '. Are you sure you are on a secure (SSL / HTTPS) connection?');
-
-            if (accounts.length > 0) {
-                address = accounts[0];
-                var isAddress = web3.utils.isAddress(address);
-
-                if (isAddress) {
-
-                    var msg = 'Please take note that this is a beta version feature and is provided on an "as is" and "as available" basis. Etherscan does not give any warranties and will not be liable for any loss, direct or indirect through continued use of this feature.';
-
-                    if (confirm(msg)) {
-                        $('.write-btn').show();
-                        $('#connectWeb3').hide();
-                        web3.eth.defaultAccount = accounts[0];
-
-                        myContractInstance = new web3.eth.Contract(ABI, contractAddress);
-
-                        $('#connector').removeClass("text-danger").addClass("text-success");
-                        $('#connector').attr('title', 'Connected');
-
-                        $('.write-btn').removeClass("disabled");
-                    }
-
-                    isAccount = true;
-                }
-            } else {
-                alert('Please connect to your Web3 provider!');
-            }
-        });
-    }
-
-    function add0xforAddress(_address) {
-        _address = _address.trim();
-        if (_address.startsWith("0x") == false && _address.length == 40) {
-            _address = "0x" + _address;
-        }
-        return _address;
-    }
-
-    function getUrlParameter(sParam) {
-        var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-        for (i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : sParameterName[1];
-            }
-        }
-    }
-
-
-    setTimeout(function () {
-        window.parent.writeContractLoaded = true;
-        var obj = window.parent.document.getElementById('writecontractiframe');
-
-        if (obj !== null) {
-            parent.resizeIframe(obj, 0);
-            window.parent.isFrameLoading = false;
-            window.parent.document.getElementById('overlayMain').style.display = 'none';
-        }
-
-    }, 50);
-    function getParameterByName(name) {
-        var url = window.location.href;
-        name = name.replace(/[\[\]]/g, "\\$&");
-        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
-    }
-
-    $(document).ready(function () {
-        $(window).keydown(function (event) {
-            if (event.keyCode == 13) {
-                event.preventDefault();
-                return false;
-            }
-        });
-    });
-</script>
-</html>
